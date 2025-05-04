@@ -24,7 +24,14 @@ def build_bigram(sequence):
     # Task 1.2
     # Return a bigram model.
     # Replace the line below with your code.
-    raise NotImplementedError
+    bigram = {}
+    for i,k in enumerate(sequence):
+        if i+1 < len(sequence):
+            bigram[tuple([k,''])] = {sequence[i+1]: 1}
+        else:
+            break
+    return bigram
+
 
 def build_n_gram(sequence, n):
     # Task 1.3
@@ -92,10 +99,10 @@ if __name__ == '__main__':
     # '''
 
     # Task 1.2 test code
-    '''
+    # '''
     model = build_bigram(sequence[:20])
     print(model)
-    '''
+    # '''
 
     # Task 1.3 test code
     '''
