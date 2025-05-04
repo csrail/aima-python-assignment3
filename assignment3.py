@@ -40,7 +40,7 @@ def build_n_gram(sequence, n):
     ngram = {}
     for i,k in enumerate(sequence):
         if i + n < len(sequence):
-            ngram[tuple([sequence[j] for j in range(i,i+n)])] = {sequence[i+n]: 1}
+            ngram[tuple([sequence[j] for j in range(i,i+n-1)])] = {sequence[i+n]: 1}
         else:
             break
     return ngram
