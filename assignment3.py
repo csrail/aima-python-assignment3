@@ -49,7 +49,15 @@ def query_n_gram(model, sequence):
     # Task 2
     # Return a prediction as a dictionary.
     # Replace the line below with your code.
-    raise NotImplementedError
+    if () in model:
+        return model[()]
+    elif () not in model and len(model.keys()) >= 2:
+        if tuple(sequence) in model.keys():
+            return model[tuple(sequence)]
+        else:
+            return None
+    else:
+        raise Exception("Have you passed an ngram model and a sequence as arguments?")
 
 def blended_probabilities(preds, factor=0.8):
     blended_probs = {}
@@ -117,9 +125,9 @@ if __name__ == '__main__':
     # '''
 
     # Task 2 test code
-    '''
+    # '''
     print(query_n_gram(model, tuple(sequence[:4])))
-    '''
+    # '''
 
     # Task 3 test code
     '''
