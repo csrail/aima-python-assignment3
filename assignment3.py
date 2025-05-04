@@ -37,7 +37,13 @@ def build_n_gram(sequence, n):
     # Task 1.3
     # Return an n-gram model.
     # Replace the line below with your code.
-    raise NotImplementedError
+    ngram = {}
+    for i,k in enumerate(sequence):
+        if i + n < len(sequence):
+            ngram[tuple([sequence[j] for j in range(i,i+n)])] = {sequence[i+n]: 1}
+        else:
+            break
+    return ngram
 
 def query_n_gram(model, sequence):
     # Task 2
@@ -105,10 +111,10 @@ if __name__ == '__main__':
     # '''
 
     # Task 1.3 test code
-    '''
+    # '''
     model = build_n_gram(sequence[:20], 5)
     print(model)
-    '''
+    # '''
 
     # Task 2 test code
     '''
