@@ -10,7 +10,15 @@ def build_unigram(sequence):
     # Task 1.1
     # Return a unigram model.
     # Replace the line below with your code.
-    raise NotImplementedError
+    vocabulary = {}
+    for k in sequence:
+        if k not in vocabulary:
+            vocabulary[k] = 1
+        else:
+            vocabulary[k] = vocabulary[k] + 1
+    unigram = {(): vocabulary}
+    return unigram
+
 
 def build_bigram(sequence):
     # Task 1.2
@@ -78,10 +86,10 @@ if __name__ == '__main__':
     sequence = tokenise('assignment3corpus.txt')
 
     # Task 1.1 test code
-    '''
+    # '''
     model = build_unigram(sequence[:20])
     print(model)
-    '''
+    # '''
 
     # Task 1.2 test code
     '''
