@@ -27,7 +27,15 @@ def build_bigram(sequence):
     bigram = {}
     for i,k in enumerate(sequence):
         if i+1 < len(sequence):
-            bigram[tuple([k,''])] = {sequence[i+1]: 1}
+            tuple_key = tuple([k,''])
+            next_token = sequence[i+1]
+            if tuple_key not in bigram:
+                bigram[tuple_key] = {sequence[i+1]: 1}
+            else:
+                if next_token not in bigram[tuple_key]:
+                    bigram[tuple_key][next_token] = 1
+                else:
+                    bigram[tuple_key][next_token] = bigram[tuple_key][next_token] + 1
         else:
             break
     return bigram
@@ -114,7 +122,8 @@ if __name__ == '__main__':
 
     # Task 1.2 test code
     # '''
-    model = build_bigram(sequence[:20])
+    # model = build_bigram(sequence[:20])
+    model = build_bigram(sequence)
     print(model)
     # '''
 
