@@ -6,49 +6,84 @@ def tokenise(filename):
     with open(filename, 'r') as f:
         return [i for i in re.split(r'(\d|\W)', f.read().replace('_', ' ').lower()) if i and i != ' ' and i != '\n']
 
+# the unigram model will hold no prior context to the next token in the sequence.
+# it is an ngram model where n is 1
 def build_unigram(sequence):
     # Task 1.1
     # Return a unigram model.
     # Replace the line below with your code.
     vocabulary = {}
     for k in sequence:
+        # when key is not in vocabulary, initialise key with value 1
         if k not in vocabulary:
             vocabulary[k] = 1
+        # when key is present in vocabulary, increment key's value by 1
         else:
             vocabulary[k] = vocabulary[k] + 1
+    # a unigram is an empty tuple with value that is the vocabulary dictionary
     unigram = {(): vocabulary}
     return unigram
 
-
+# the bigram model will hold one token as context to the next token in the sequence.
+# it is an ngram model where n is 2
 def build_bigram(sequence):
     # Task 1.2
     # Return a bigram model.
     # Replace the line below with your code.
     bigram = {}
     for i,k in enumerate(sequence):
+        # generating context with indexing should not exceed the length of the sequence 
+        # the i specifies the current index being iterated
+        # the +1 accounts for the next token
         if i+1 < len(sequence):
             tuple_key = tuple([k,''])
             next_token = sequence[i+1]
+            # when the tuple key is not in the bigram, initialise the key
+            # with its value set as a dictionary containing the key/value pair
+            # of the next token with a count of 1
             if tuple_key not in bigram:
                 bigram[tuple_key] = {sequence[i+1]: 1}
+            # when the tuple key already exists in the bigram, then check for
+            # whether the next token exists
             else:
+                # when the next token does not exist, initialise the key/value
+                # pair of the next token with a count of 1
                 if next_token not in bigram[tuple_key]:
                     bigram[tuple_key][next_token] = 1
+                # when the next token already exists in the dictionary, increment
+                # its value by 1
                 else:
                     bigram[tuple_key][next_token] = bigram[tuple_key][next_token] + 1
+        # break when indexing would exceed the length of the sequence
         else:
             break
     return bigram
 
-
+# the ngram model will hold n-1 number of tokens as context to the next token in the sequence
 def build_n_gram(sequence, n):
     # Task 1.3
     # Return an n-gram model.
     # Replace the line below with your code.
     ngram = {}
     for i,k in enumerate(sequence):
-        if i + n < len(sequence):
-            ngram[tuple([sequence[j] for j in range(i,i+n-1)])] = {sequence[i+n]: 1}
+        # generating context with indexing should not exceed the length of the sequence
+        if i+n-1 < len(sequence):
+            # specify the tuple key as being a sequence of n-1 tokens from the curent index i
+            # the next token must be downstream from the context so i+n-1
+            tuple_key = tuple([sequence[j] for j in range(i,i+n-1)])
+            next_token = sequence[i+n-1]
+            # when the tuple key does not exist in the ngram, initialise the key
+            # with its value set as a dictionary containing the key/value pair
+            # of the next token with a count of 1
+            if tuple_key not in ngram:
+                ngram[tuple_key] = {next_token: 1}
+            # when the tuple key already exists in the ngram,
+            # then check for whether the next token exists
+            else:
+                if next_token not in ngram[tuple_key]:
+                    ngram[tuple_key][next_token] = 1
+                else:
+                    ngram[tuple_key][next_token] = ngram[tuple_key][next_token] + 1
         else:
             break
     return ngram
@@ -122,8 +157,7 @@ if __name__ == '__main__':
 
     # Task 1.2 test code
     # '''
-    # model = build_bigram(sequence[:20])
-    model = build_bigram(sequence)
+    model = build_bigram(sequence[:20])
     print(model)
     # '''
 
