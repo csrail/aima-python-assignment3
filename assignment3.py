@@ -1,6 +1,7 @@
 import re
 import math
 import random
+import numpy as np
 
 def tokenise(filename):
     with open(filename, 'r') as f:
@@ -88,12 +89,18 @@ def build_n_gram(sequence, n):
             break
     return ngram
 
+# Given a query, ask the ngram model to return a prediction.
+# The prediction is a dictionary. 
+# If the context is too small for the ngram model, the model returns None (no prediction).
 def query_n_gram(model, sequence):
     # Task 2
     # Return a prediction as a dictionary.
     # Replace the line below with your code.
+    
+    # unigram case
     if () in model:
         return model[()]
+    # n_gram case, bigram and up:
     elif () not in model and len(model.keys()) >= 2:
         if tuple(sequence) in model.keys():
             return model[tuple(sequence)]
@@ -104,26 +111,48 @@ def query_n_gram(model, sequence):
 
 def blended_probabilities(preds, factor=0.8):
     blended_probs = {}
-    mult = factor
-    comp = 1 - factor
+    mult = factor # first iteration 0.8
+    comp = 1 - factor # first iteration 0.2
+    # for all predictions except the last element
     for pred in preds[:-1]:
+        # Only valid predictions are considered, None predictions are discarded.
+        # Predictions are a dictionary with keys as words and their frequency of
+        # appearing as values in relation to their context
         if pred:
+            # for the given prediction there will be a dictionary, with a possible
+            # n keys with natural numbers as their value; sum all the values up
+            # to calculate a weight_sum
             weight_sum = sum(pred.values())
             for k, v in pred.items():
+                # if predicted value already exists in blended probabilities
+                # then add to it
+                # else the predicted value does not exist in the blended probabilities
+                # then initialise it
+                # in this given prediction, the summation of all v / weight_sum will equal 1
+                # therefore the total probability
                 if k in blended_probs:
                     blended_probs[k] += v * mult / weight_sum
                 else:
                     blended_probs[k] = v * mult / weight_sum
+            # second iteration mult would be 0.8 * 0.2 -> 0.16
+            # second iteration comp would be 0.2 - 0.16 -> 0.04
             mult = comp * factor
             comp -= mult
+    # handling for last prediction since probabilities must add up to one
+    # for example when there are only two predictions
+    # then the first factor will be weighted 0.8
+    # and the second factor will be weighted 0.2
     pred = preds[-1]
-    mult += comp
+    mult += comp # 0.16 + 0.04 -> 0.2
+    # then carry out the same operation as above to get the blended probabilities
     weight_sum = sum(pred.values())
     for k, v in pred.items():
         if k in blended_probs:
             blended_probs[k] += v * mult / weight_sum
         else:
             blended_probs[k] = v * mult / weight_sum
+    # weighted sum will be equal to n dictionaries processed
+    # calculate weight sum again to rebalance to a probability summing to 1
     weight_sum = sum(blended_probs.values())
     return {k: v / weight_sum for k, v in blended_probs.items()}
 
@@ -131,7 +160,21 @@ def sample(sequence, models):
     # Task 3
     # Return a token sampled from blended predictions.
     # Replace the line below with your code.
-    raise NotImplementedError
+    
+    # query all models to return a prediction for the given sequence
+    # preds = [query_n_gram(model,sequence) for model in models]
+    preds = []
+    for model in models:
+        min_serviceable_tokens = len(next(iter(model)))
+        if len(sequence) < min_serviceable_tokens:
+            preds.append(None)
+        else:
+            preds.append(query_n_gram(model, sequence[-min_serviceable_tokens:]))
+
+    blended_probs = blended_probabilities(preds)
+    choice = np.random.choice(list(blended_probs.keys()),1,replace=False,p=list(blended_probs.values()))
+    token = str(choice[0])
+    return token
 
 def log_likelihood_ramp_up(sequence, models):
     # Task 4.1
@@ -151,20 +194,26 @@ if __name__ == '__main__':
 
     # Task 1.1 test code
     # '''
+    print("Unigram Model:")
     model = build_unigram(sequence[:20])
     print(model)
+    print()
     # '''
 
     # Task 1.2 test code
     # '''
+    print("Bigram Model:")
     model = build_bigram(sequence[:20])
     print(model)
+    print()
     # '''
 
     # Task 1.3 test code
     # '''
+    print("N gram model:")
     model = build_n_gram(sequence[:20], 5)
     print(model)
+    print()
     # '''
 
     # Task 2 test code
@@ -173,7 +222,11 @@ if __name__ == '__main__':
     # '''
 
     # Task 3 test code
-    '''
+    # '''
+    # Build ngram in reverse order since more context should result in better predictions
+    # And when blending probabilities together, the more complex ngram has higher weighting.
+    # Head will initially be empty because no predictions have been made.
+    # But as predictions are outputted they are appended to head and used as the next input.
     models = [build_n_gram(sequence, i) for i in range(10, 0, -1)]
     head = []
     for _ in range(100):
@@ -181,7 +234,7 @@ if __name__ == '__main__':
         print(tail, end=' ')
         head.append(tail)
     print()
-    '''
+    # '''
 
     # Task 4.1 test code
     '''
