@@ -211,7 +211,42 @@ def log_likelihood_blended(sequence, models):
     # Task 4.2
     # Return a log likelihood value of the sequence based on the models.
     # Replace the line below with your code.
-    raise NotImplementedError
+    log_likehood_list = []
+    
+    for i in range(0,len(sequence)):
+        # next token to predict
+        next_token = sequence[:i+1][-1]
+        
+        if i < len(models):
+            model_limit = i + 1
+        else:
+            model_limit = len(models)
+
+        active_predictions = []
+
+        for j in range(0,model_limit):
+            model = list(reversed(models))[j]
+            if () in model: 
+                tuple_key = tuple([])
+            else:
+                tuple_key = tuple(sequence[i-j:i]) 
+
+            try:
+                active_predictions.append(model[tuple_key])
+            except KeyError:
+                return -math.inf
+
+        # all the n_gram predictions
+        active_predictions = list(reversed(active_predictions))
+        blended_probs = blended_probabilities(active_predictions)
+        likelihood = blended_probs[next_token]
+        log_likelihood = math.log(likelihood)
+        log_likehood_list.append(log_likelihood)
+
+        # reset active_predictions for next iteration
+        active_predictions = []
+    
+    return sum(log_likehood_list)
 
 if __name__ == '__main__':
 
@@ -269,10 +304,12 @@ if __name__ == '__main__':
     # '''
     print("Log likelihood ramp up:")
     print(log_likelihood_ramp_up(sequence[:20], models))
+    print()
     # '''
 
     # Task 4.2 test code
-    '''
+    # '''
+    print("Log likelihood from blended models:")
     print(log_likelihood_blended(sequence[:20], models))
-    '''
+    # '''
 
