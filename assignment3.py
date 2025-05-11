@@ -4,7 +4,7 @@ import random
 import numpy as np
 
 def tokenise(filename):
-    with open(filename, 'r') as f:
+    with open(filename, 'r', encoding='utf-8-sig') as f:
         return [i for i in re.split(r'(\d|\W)', f.read().replace('_', ' ').lower()) if i and i != ' ' and i != '\n']
 
 # the unigram model will hold no prior context to the next token in the sequence.
@@ -180,7 +180,32 @@ def log_likelihood_ramp_up(sequence, models):
     # Task 4.1
     # Return a log likelihood value of the sequence based on the models.
     # Replace the line below with your code.
-    raise NotImplementedError
+    log_likelihood_list = []
+    for i in range(0,len(sequence)):
+        # ramp up from unigram model up to 10-gram model
+        # tuple_key holds up to i tokens as context
+        if i < len(models):
+            model = list(reversed(models))[i]
+            tuple_key = tuple(sequence[:i])
+        # keep using the 10-gram model once reached
+        # tuple_key holds the last 9 tokens as context
+        else:
+            model = list(reversed(models))[len(models)-1]
+            tuple_key = tuple(sequence[i-len(models)+1:i])
+
+        next_token = sequence[:i+1][-1]
+        try:
+            frequency = model[tuple_key][next_token]
+        except KeyError:
+            return -math.inf
+
+        weight_sum = sum(model[tuple_key].values())
+        likelihood = frequency / weight_sum
+        log_likelihood = math.log(likelihood)
+        log_likelihood_list.append(log_likelihood)
+
+    return sum(log_likelihood_list)
+
 
 def log_likelihood_blended(sequence, models):
     # Task 4.2
@@ -218,7 +243,9 @@ if __name__ == '__main__':
 
     # Task 2 test code
     # '''
+    print("Query N gram model:")
     print(query_n_gram(model, tuple(sequence[:4])))
+    print()
     # '''
 
     # Task 3 test code
@@ -227,6 +254,7 @@ if __name__ == '__main__':
     # And when blending probabilities together, the more complex ngram has higher weighting.
     # Head will initially be empty because no predictions have been made.
     # But as predictions are outputted they are appended to head and used as the next input.
+    print("Sample blended N gram models:")
     models = [build_n_gram(sequence, i) for i in range(10, 0, -1)]
     head = []
     for _ in range(100):
@@ -234,12 +262,14 @@ if __name__ == '__main__':
         print(tail, end=' ')
         head.append(tail)
     print()
+    print()
     # '''
 
     # Task 4.1 test code
-    '''
+    # '''
+    print("Log likelihood ramp up:")
     print(log_likelihood_ramp_up(sequence[:20], models))
-    '''
+    # '''
 
     # Task 4.2 test code
     '''
