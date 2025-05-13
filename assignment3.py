@@ -4,6 +4,7 @@ import random
 import numpy as np
 
 def tokenise(filename):
+    # include encoding as `utf-8-sig`` otherwise tokenise method finds /ufeff as a first token
     with open(filename, 'r', encoding='utf-8-sig') as f:
         return [i for i in re.split(r'(\d|\W)', f.read().replace('_', ' ').lower()) if i and i != ' ' and i != '\n']
 
@@ -193,12 +194,17 @@ def log_likelihood_ramp_up(sequence, models):
             model = list(reversed(models))[len(models)-1]
             tuple_key = tuple(sequence[i-len(models)+1:i])
 
+        # find the frequency that the next_token appears
+        # in the given n-gram for the given key
         next_token = sequence[:i+1][-1]
         try:
             frequency = model[tuple_key][next_token]
         except KeyError:
             return -math.inf
 
+        # find the frequency of its appearance relative
+        # to the frequency of all other tokens appearing
+        # in the given n-gram for the given key
         weight_sum = sum(model[tuple_key].values())
         likelihood = frequency / weight_sum
         log_likelihood = math.log(likelihood)
@@ -213,6 +219,7 @@ def log_likelihood_blended(sequence, models):
     # Replace the line below with your code.
     log_likehood_list = []
     
+    # iteration over the sentence
     for i in range(0,len(sequence)):
         # next token to predict
         next_token = sequence[:i+1][-1]
@@ -224,10 +231,19 @@ def log_likelihood_blended(sequence, models):
 
         active_predictions = []
 
+        # iteration over all legal n-grams
         for j in range(0,model_limit):
             model = list(reversed(models))[j]
+            # when just the one-gram, set tuple key to an empty tuple
             if () in model: 
                 tuple_key = tuple([])
+            # all other n-grams will have a tuple key based on the
+            # moving read across the sequence of tokens
+            # slice the sequence to END at the latest read :i
+            # slice the sequence to START at the possible of context
+            # that the jth n-gram can hold
+            # i-j: should not experience an IndexOutOfBounds exception since
+            # j is constrained by the model limit.
             else:
                 tuple_key = tuple(sequence[i-j:i]) 
 
@@ -236,7 +252,9 @@ def log_likelihood_blended(sequence, models):
             except KeyError:
                 return -math.inf
 
-        # all the n_gram predictions
+        # all the available and legal n_gram predictions with the
+        # highest order n-gram at the zero index are used
+        # i.e. a dictionary containing n dictionary of predictions
         active_predictions = list(reversed(active_predictions))
         blended_probs = blended_probabilities(active_predictions)
         likelihood = blended_probs[next_token]
@@ -246,6 +264,7 @@ def log_likelihood_blended(sequence, models):
         # reset active_predictions for next iteration
         active_predictions = []
     
+    # log of products is the same as the log of each term added together
     return sum(log_likehood_list)
 
 if __name__ == '__main__':
